@@ -9,6 +9,7 @@ import           HsShellScript
 import           System.FilePath 
 import           System.Directory 
 import           Data.Maybe
+import           Data.Char
 
 main =
    do let recurseopt = argdesc [ desc_short 'r', desc_long "recursive", 
@@ -55,7 +56,7 @@ main =
                      Nothing -> getCurrentDirectory
                      Just outfile -> return (dir_part outfile)                                                   
       -- Get the list of files and write it to stdout/file
-      allfiles <- ((listFiles paths recurse) >>= (filterM isMusicFile))
+      allfiles <- ((listFiles paths recurse) >>= (filterM validFile))
       allpaths <- if relpaths
                      then (mapM (makeRelativePath outdir) allfiles)
                      else return allfiles
@@ -96,7 +97,8 @@ makeRelativePath base path = do absBase <- replaceTilde base >>= realpath
                                 return $ unslice_path (dotdots ++ (drop commonlen pathparts))
 
 -- Returns a list of all files found in the paths listed in the first argument,
--- and their subdirectories.
+-- and their subdirectories. The second argument indicates whether or not to search
+-- subdirectories recursively.
 listFiles :: [String] -> Bool -> IO [String]
 listFiles [] _ = return []
 listFiles (x:xs) recurse = do isdir <- is_dir x
@@ -111,11 +113,12 @@ listFiles (x:xs) recurse = do isdir <- is_dir x
                                          else return rest
                                  else return (x:rest)
 
--- Check if a filepath exists and points to a music file
-isMusicFile :: String -> IO Bool
-isMusicFile x = do okpath <- path_exists x
-                   let ext = takeExtension x
-                   return (and [okpath,(elem ext [".mpg",".mp3",".wav",".ogg",".mp4"])])
+-- Check if a filepath exists and is valid
+validFile :: String -> IO Bool
+validFile file = do okpath <- path_exists file
+                    let ext = takeExtension file
+                        validExt = [".3ga",".3gp",".aac",".asf",".avi",".dat",".m2t",".mkv",".mov",".mp3",".mp4",".mpeg",".ogg",".vob",".webm",".wma",".wmv"]
+                    return (and [okpath,(elem ext ((map (map toUpper) validExt) ++ validExt))])
 
 -- Prompt the user for a y/n answer
 yesnoPrompt :: String -> IO Bool
