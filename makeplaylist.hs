@@ -1,3 +1,4 @@
+#!/usr/local/bin/runhaskell
 -- Script for creating .m3u/.pls playlists 
 {-# LANGUAGE OverloadedStrings #-}
 
