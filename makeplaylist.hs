@@ -1,5 +1,5 @@
 #!/usr/local/bin/runhaskell
--- Script for creating .m3u/.pls playlists 
+-- Script for creating .m3u playlists 
 {-# LANGUAGE OverloadedStrings #-}
 
 import           System.Exit
