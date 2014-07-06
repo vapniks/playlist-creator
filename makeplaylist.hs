@@ -62,7 +62,9 @@ main =
                      then (mapM (makeRelativePath outdir) allfiles)
                      else return allfiles
       mapM_ (hPutStrLn handle) allpaths
-      hClose handle
+      if outopt == Nothing
+         then return ()
+         else hClose handle
       -- Catch any exceptions
       `catch`
          (\argerror -> do
