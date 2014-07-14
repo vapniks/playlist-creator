@@ -28,14 +28,16 @@ main =
                                 desc_argname "FILE", desc_value_required, desc_at_most_once ]
           dirsopt = argdesc [ desc_direct, desc_description "File or directory containing music files", 
                               desc_argname "FILE/DIR", desc_at_least_once ]
-          header = "Usage: makeplaylist [-rn] [-o FILE] FILE/DIR..."
-      args <- getargs header [recurseopt, relopt, nopromptopt, appendopt, outputopt, dirsopt]
+          helpopt = argdesc [ desc_short 'h', desc_long "help", desc_description "Show help", desc_at_most_once ]
+          header = "Usage: makeplaylist [-rRna] [-o FILE] FILE/DIR..."
+      args <- getargs header [helpopt, recurseopt, relopt, nopromptopt, appendopt, outputopt, dirsopt]
       let recurse = arg_switch args recurseopt
           relpaths = arg_switch args relopt
           outopt = optarg_req args outputopt
           paths = args_req args dirsopt
           noprompt = arg_switch args nopromptopt
           append = arg_switch args appendopt
+          help = arg_switch args helpopt
           mode = if append
                     then AppendMode
                     else WriteMode
@@ -52,6 +54,10 @@ main =
                                                       else exitFailure
                                            else do putStrLn ("Writing to " ++ outfile)
                                                    openFile outfile mode
+      if help
+         then do putStrLn (usage_info args)
+                 exitSuccess
+         else return ()
       -- output directory
       outdir <- do case outopt of
                      Nothing -> getCurrentDirectory
