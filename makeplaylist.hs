@@ -38,22 +38,30 @@ main =
           noprompt = arg_switch args nopromptopt
           append = arg_switch args appendopt
           help = arg_switch args helpopt
-          mode = if append
-                    then AppendMode
-                    else WriteMode
       -- Get the file handle/stdout
       hndl <- do case outopt of
                      Nothing -> return stdout
                      Just outfile -> do exists <- path_exists outfile 
-                                        -- prompt the user to overwrite file if necessary
-                                        if (exists && (not noprompt) && (not append))
-                                           then do yes <- yesnoPrompt (outfile ++ " already exists, overwrite?")
-                                                   if yes
-                                                      then do putStrLn ("Writing to " ++ outfile)
-                                                              openFile outfile mode
-                                                      else exitFailure
-                                           else do putStrLn ("Writing to " ++ outfile)
-                                                   openFile outfile mode
+                                        let basename = takeFileName outfile
+                                            appendingStr = ("Appending to " ++ outfile)
+                                            writingStr = ("Writing to " ++ outfile)
+                                        -- prompt the user to overwrite or append to file if necessary
+                                        mode <- if (exists && (not noprompt) && (not append))
+                                                    then do yes <- yesnoPrompt (basename ++ " already exists, overwrite?")
+                                                            if yes
+                                                               then do putStrLn writingStr
+                                                                       return WriteMode
+                                                               else do append <- yesnoPrompt ("Append to " ++ basename ++ "?")
+                                                                       if append
+                                                                          then do putStrLn appendingStr
+                                                                                  return AppendMode
+                                                                          else exitFailure
+                                                    else if append
+                                                            then do putStrLn appendingStr
+                                                                    return AppendMode
+                                                            else do putStrLn writingStr
+                                                                    return WriteMode
+                                        openFile outfile mode
       if help
          then do putStrLn (usage_info args)
                  exitSuccess
@@ -61,7 +69,7 @@ main =
       -- output directory
       outdir <- do case outopt of
                      Nothing -> getCurrentDirectory
-                     Just outfile -> return (dir_part outfile)                                                   
+                     Just outfile -> return (dir_part outfile)
       -- Get the list of files and write it to stdout/file
       allfiles <- ((listFiles paths recurse) >>= (filterM validFile))
       allpaths <- if relpaths
