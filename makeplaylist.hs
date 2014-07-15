@@ -126,7 +126,7 @@ listFiles (x:xs) recurse = do isdir <- is_dir x
 validFile :: String -> IO Bool
 validFile file = do okpath <- path_exists file
                     let ext = takeExtension file
-                        validExt = [".3ga",".3gp",".aac",".asf",".avi",".dat",".m2t",".mkv",".mov",".mp3",".mp4",".mpeg",".ogg",".vob",".webm",".wma",".wmv","m4a"]
+                        validExt = [".3ga",".3gp",".aac",".asf",".avi",".dat",".m2t",".mkv",".mov",".mp3",".mp4",".mpeg",".ogg",".vob",".webm",".wma",".wmv",".m4a"]
                     return (and [okpath,(elem ext ((map (map toUpper) validExt) ++ validExt))])
 
 -- Prompt the user for a y/n answer
