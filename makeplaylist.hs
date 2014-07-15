@@ -9,9 +9,9 @@ import           Control.Monad
 import           HsShellScript
 import           System.FilePath 
 import           System.Directory 
-import           Data.Maybe
 import           Data.Char
 
+main :: IO ()
 main =
    do let recurseopt = argdesc [ desc_short 'r', desc_long "recursive", 
                                  desc_description "Recursively read the subdirectories.", 
@@ -42,7 +42,7 @@ main =
                     then AppendMode
                     else WriteMode
       -- Get the file handle/stdout
-      handle <- do case outopt of
+      hndl <- do case outopt of
                      Nothing -> return stdout
                      Just outfile -> do exists <- path_exists outfile 
                                         -- prompt the user to overwrite file if necessary
@@ -67,10 +67,10 @@ main =
       allpaths <- if relpaths
                      then (mapM (makeRelativePath outdir) allfiles)
                      else return allfiles
-      mapM_ (hPutStrLn handle) allpaths
+      mapM_ (hPutStrLn hndl) allpaths
       if outopt == Nothing
          then return ()
-         else hClose handle
+         else hClose hndl
       -- Catch any exceptions
       `catch`
          (\argerror -> do
@@ -114,8 +114,8 @@ listFiles (x:xs) recurse = do isdir <- is_dir x
                               rest <- listFiles xs recurse
                               if isdir
                                  then if recurse
-                                         then do contents <- getDirectoryContents x
-                                                 let nodots = (filter (flip notElem [".",".."]) contents)
+                                         then do cnts <- getDirectoryContents x
+                                                 let nodots = (filter (flip notElem [".",".."]) cnts)
                                                      allfiles = (map (x </>) nodots)
                                                  a <- listFiles allfiles recurse
                                                  return (a ++ rest)
@@ -126,7 +126,7 @@ listFiles (x:xs) recurse = do isdir <- is_dir x
 validFile :: String -> IO Bool
 validFile file = do okpath <- path_exists file
                     let ext = takeExtension file
-                        validExt = [".3ga",".3gp",".aac",".asf",".avi",".dat",".m2t",".mkv",".mov",".mp3",".mp4",".mpeg",".ogg",".vob",".webm",".wma",".wmv"]
+                        validExt = [".3ga",".3gp",".aac",".asf",".avi",".dat",".m2t",".mkv",".mov",".mp3",".mp4",".mpeg",".ogg",".vob",".webm",".wma",".wmv","m4a"]
                     return (and [okpath,(elem ext ((map (map toUpper) validExt) ++ validExt))])
 
 -- Prompt the user for a y/n answer
